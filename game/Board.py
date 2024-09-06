@@ -1,22 +1,25 @@
 import csv
 from game.Cell import Cell
+from game.Package import Package
+from game.consts import DEFAULT_IMAGE_SIZE
+
 
 class Board:
-    def __init__(self, colors_map, targets_map) -> None:
-        self.__load_from_file(colors_map, targets_map)
+    def __init__(self, colors, targets) -> None:
+        self.load_from_file(colors, targets)
         self.size = len(self.cells[0])
 
-        self.yellow_cells = self.__get_cells_by_color('y')
-        self.red_cells = self.__get_cells_by_color('r')
-        self.green_cells = self.__get_cells_by_color('gr')
-        self.blue_cells = self.__get_cells_by_color('b')
-        self.white_cells = self.__get_cells_by_color('w')
+        self.yellow_cells = self.get_cells_by_color('y')
+        self.red_cells = self.get_cells_by_color('r')
+        self.green_cells = self.get_cells_by_color('a')
+        self.blue_cells = self.get_cells_by_color('b')
+        self.white_cells = self.get_cells_by_color('w')
+        self.occupied_cells = {}
 
-    def __get_cells_by_color(self, color):
+    def get_cells_by_color(self, color):
         return [cell for row_cell in self.cells for cell in row_cell if cell.color == color]
 
-    def __load_from_file(self, colors_map, targets_map):
-
+    def load_from_file(self, colors_map, targets_map):
         self.cells = []
 
         colors_map_file = open(colors_map, mode='r')
@@ -42,3 +45,20 @@ class Board:
 
     def __getitem__(self, index):
         return self.cells[index]
+
+    def isOccupied(self, x, y):
+        return (x, y) in self.occupied_cells
+
+    def UpdatePosition(self, old_pos, new_pos):
+        if old_pos in self.occupied_cells:
+            del self.occupied_cells[old_pos]
+        self.occupied_cells[new_pos] = True
+
+    def place_package(self, pos):
+        package = Package(pos)
+        self.cells[pos[1]][pos[0]].package = package
+        return package
+
+    def get_package_at(self, pos):
+        cell = self[pos[1]][pos[0]]
+        return cell.package
