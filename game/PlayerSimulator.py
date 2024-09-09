@@ -93,6 +93,7 @@ class PlayerSimulator:
                 self.ScreenAnimator()
                 pygame.time.delay(50)
 
+
     def PressedKey(self, event):
         if event.key == pygame.K_TAB:
             self.current_player_index = (self.current_player_index + 1) % len(self.players)
@@ -140,6 +141,9 @@ class PlayerSimulator:
 
     def index_to_letter(self, index):
         return chr(ord('A') + index)
+
+    def get_players(self):
+        return self.players
 
     def ENDGAME(self):
         logging.info("Player has ended the game")

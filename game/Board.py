@@ -8,6 +8,7 @@ class Board:
     def __init__(self, colors, targets) -> None:
         self.load_from_file(colors, targets)
         self.size = len(self.cells[0])
+        self.current_player_index = 0
 
         self.yellow_cells = self.get_cells_by_color('y')
         self.red_cells = self.get_cells_by_color('r')
@@ -45,6 +46,9 @@ class Board:
 
     def __getitem__(self, index):
         return self.cells[index]
+
+    def get_current_player(self):
+        return self.players[self.current_player_index]
 
     def isOccupied(self, x, y):
         return (x, y) in self.occupied_cells

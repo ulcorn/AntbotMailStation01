@@ -1,5 +1,8 @@
 import pygame
 import logging
+import time
+import re  # Модуль для регулярных выражений
+
 from game.Board import Board
 from game.Player import Player
 from game.config import GameConfig
@@ -16,16 +19,17 @@ logging.getLogger().addHandler(file_handler)
 
 pygame.init()
 
+
 class GameManager:
     def __init__(self):
         self.config = GameConfig("game.config")
         self.screen = pygame.display.set_mode((DEFAULT_IMAGE_SIZE[0] * 11, DEFAULT_IMAGE_SIZE[1] * 11))
         pygame.display.set_caption('Robotics Board Game')
 
-        self.board = Board("csv_files/colors.csv", "csv_files/numbers.csv")
+        self.board = Board("csv_files/colors.csv", "csv_files/targets.csv")
         self.players = [
-            Player(color=color, num_robots=self.config.robots_per_player)
-            for color in ['blue', 'red', 'green', 'orange'][:self.config.get_num_players()]
+            Player(color=color, num_robots=self.config.robots_per_player, idx=idx)
+            for color, idx in [('blue', 1), ('red', 2), ('green', 3), ('orange', 4)][:self.config.get_num_players()]
         ]
 
         self.simulator = PlayerSimulator(self.players, self.board, self.screen)
@@ -52,25 +56,50 @@ class GameManager:
         pygame.quit()
 
     def run_game_mode_2(self):
-        executed_commands = set()  # To keep track of executed commands
+        def is_valid_command(command):
+            gamer_command = r"^GAMER \d+$"  # Команда GAMER X
+            put_bot_command = r"^PUT BOT [a-g][1-8]$"  # Команда PUT BOT c3 (буквы от a до g и цифры от 1 до 8)
+            move_command = r"^MOVE ([a-g][1-8]-)+[a-g][1-8]$"  # Команда MOVE c3-c2 или MOVE e4-f4-f3-f2
+            end_command = r"^END$"  # Команда END
+
+            if re.match(gamer_command, command):
+                return True
+            elif re.match(put_bot_command, command):
+                return True
+            elif re.match(move_command, command):
+                return True
+            elif re.match(end_command, command):
+                return True
+            else:
+                return False
+
+        cnt = 0
 
         self.running = True
+
         logging.info("run_game_mode_2 started")
+
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
                     logging.info("Game terminated by user.")
+                    break
 
-            # Reload commands on each iteration
-            commands = self.load_commands("commands.txt")
-            new_commands = [cmd for cmd in commands if cmd not in executed_commands]
+            # Открываем файл и считываем все строки
+            with open("commands.txt", "r") as file:
+                commands = file.readlines()
 
-            for command in new_commands:
-                self.execute_command(command)
-                executed_commands.add(command)
+                for command in commands[cnt:]:
+                    command = command.strip()
+                    if is_valid_command(command):
+                        self.execute_command(command)
+                        cnt += 1
+                    else:
+                        if command != '':
+                            logging.warning(f"Invalid command: {command}")  # Логируем невалидные команды
 
-            pygame.time.delay(500)
+            time.sleep(1)
 
         pygame.quit()
 
@@ -83,6 +112,11 @@ class GameManager:
         parts = command.strip().split()
         if not parts:
             return
+
+        if self.placing_phase and not (parts[0] == "PUT" and parts[1] == "BOT") and parts[0] != "GAMER":
+            self.placing_phase = False
+            logging.info(f"Placing phase ended.")
+            self.simulator.update_package_visibility(self.placing_phase)
 
         if parts[0] == "GAMER":
             self.simulator.current_player_index = int(parts[1]) - 1

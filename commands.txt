@@ -21,6 +21,14 @@ MOVE g3-g2
 MOVE g2-g3
 GAMER 1
 MOVE c3-c2
+MOVE c2-c3
 MOVE c3-c2
-MOVE c2-c1
-MOVE c1-b1
+MOVE c2-c3
+MOVE c3-c2
+MOVE c2-c3
+MOVE c3-c4
+MOVE c4-c5-c6-c7
+MOVE c7-c8
+MOVE c8-c7-c6-c5-c4-c3-c2-c1
+MOVE c1-c2
+

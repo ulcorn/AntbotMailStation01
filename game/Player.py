@@ -2,15 +2,17 @@ from game.Robot import Robot
 
 
 class Player:
-    def __init__(self, color, num_robots):
+    def __init__(self, color, num_robots, idx):
         self.color = color
+        self.idx = idx
         self.num_robots = num_robots
         self.robots = []
+        self.score = 0
 
     def place_robot(self, pos, board, robot_index):
         if not board.isOccupied(pos[0], pos[1]) and board[pos[0]][pos[1]].color == 'w':
             board.UpdatePosition(None, pos)
-            robot = Robot(self.color, pos=pos, index=robot_index + 1)
+            robot = Robot(self.color, pos, robot_index + 1, self)
             self.robots.append(robot)
             return True
         return False
@@ -26,3 +28,6 @@ class Player:
 
     def all_robots_placed(self):
         return len(self.robots) == self.num_robots
+
+    def increase_score(self, points):
+        self.score += points
