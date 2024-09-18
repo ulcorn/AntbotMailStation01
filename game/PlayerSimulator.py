@@ -35,7 +35,7 @@ class PlayerSimulator:
             package.visible = False
 
     def update_package_visibility(self, placing_phase):
-        """Обновление видимости: Обновление видимости пакетов в зависимости от фазы размещения"""
+        """Обновление видимости: Обновление видимости посылок в зависимости от фазы размещения"""
         self.placing_phase = placing_phase
         for row in self.board.cells:
             for cell in row:
@@ -65,7 +65,7 @@ class PlayerSimulator:
         return False
 
     def execute_put_bot(self, player_index, pos):
-        """Установка бота для второго режима, его можно не трогать, я его по приколу сделала, потому что"""
+        """Установка бота для второго режима"""
         row = int(pos[1]) - 1
         col = ord(pos[0].lower()) - ord('a')
         if self.players[player_index].place_robot((col, row), self.board, len(self.players[player_index].robots)):

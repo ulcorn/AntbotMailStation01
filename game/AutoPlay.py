@@ -1,11 +1,11 @@
 import logging
 import random
-import time  # импортируем модуль time для добавления задержки
+import time
 from collections import deque
 
 
 def allocate_packages(robots, packages):
-    """Распознание посылок"""
+    """Распознание посылок/Packages recognition"""
     assignments = {}
     remaining_packages = packages[:]
 
@@ -33,37 +33,51 @@ class AutoPlay:
         self.active = True
 
     def find_white_cells(self):
+        """For random placement"""
         return self.board.get_cells_by_color('w')
 
     def get_random_white_cell_position(self):
+        """For placement"""
         white_cells = self.find_white_cells()
         if white_cells:
             cell = random.choice(white_cells)
             return cell.x, cell.y
         return None
 
-    # def find_most_expensive_package(self):
-    #     max_value = 0
-    #     target_package = None
-    #     target_pos = None
-    #     for row in self.board.cells:
-    #         for cell in row:
-    #             if cell.package and not cell.package.picked_up:
-    #                 if cell.package.number > max_value:
-    #                     max_value = cell.package.number
-    #                     target_package = cell.package
-    #                     x, y = cell.package.pos
-    #                     target_pos = (x, y + 1)  # Позиция зелёной клетки над посылкой
-    #
-    #     return target_package, target_pos
-
     def find_target_cell(self, package):
+        """Finds the cell to Start BFS algorithm"""
         for row in self.board.cells:
             for cell in row:
                 if cell.target == package.number:
-                    return cell
+                    if not self.board.is_occupied(cell.x, cell.y):
+                        return cell
+                    else:
+                        logging.info(f"Target cell for package {package.number} is occupied. Searching for nearest free cell.")
+                        return self.find_nearest_free_cell(cell.x, cell.y)
+
+    def find_nearest_free_cell(self, start_x, start_y):
+        """Поиск ближайшей свободной клетки методом BFS./Finds nearest not occupied cell"""
+        directions = [("up", (0, -1)), ("down", (0, 1)), ("left", (-1, 0)), ("right", (1, 0))]
+        queue = deque([(start_x, start_y)])
+        visited = {(start_x, start_y)}
+
+        while queue:
+            x, y = queue.popleft()
+
+            if not self.board.is_occupied(x, y):
+                return self.board[y][x]
+
+            for direction, (dx, dy) in directions:
+                new_x, new_y = x + dx, y + dy
+                if 0 <= new_x < self.board.size and 0 <= new_y < self.board.size and (new_x, new_y) not in visited:
+                    visited.add((new_x, new_y))
+                    queue.append((new_x, new_y))
+
+        logging.warning(f"No free cell found starting from ({start_x}, {start_y}).")
+        return None
 
     def is_valid_move(self, robot, new_pos):
+        """Checks if the move is valid"""
         x, y = new_pos
         if 0 <= x < self.board.size and 0 <= y < self.board.size:
             target_cell = self.board.cells[y][x]
@@ -87,29 +101,17 @@ class AutoPlay:
         return False
 
     def move_robot_towards(self, robot, target_pos):
+        """Moves Robot towards"""
         path = self.find_path(robot, target_pos)
         if path:
             direction, new_pos = path[0]
             if robot.move(direction, self.board):
-                target_cell = self.board.cells[new_pos[1]][new_pos[0]]
-                if target_cell.target and robot.package and target_cell.target == robot.package.number:
-                    robot.drop_package(target_cell)
-                    logging.info(f"Robot {robot.index} delivered package at {new_pos}. Movement ends.")
-                    return None
-
-                if not robot.has_package:
-                    if target_cell.color == 'a':
-                        below_cell = self.board[new_pos[1] + 1][new_pos[0]]
-                        if below_cell.color == 'r' and below_cell.package and not below_cell.package.picked_up:
-                            robot.pick_package(below_cell.package, self.board)
-                            logging.info(f"Robot {robot.index} picked up package from {below_cell.pos}")
-
                 return new_pos
-
         logging.warning(f"No path found for robot at {robot.pos} to target {target_pos}")
         return None
 
     def play(self):
+        """Main game function for autoplay"""
         move_limit = self.player.move_limit_per_turn
         num_robots = len(self.player.robots)
         base_moves_per_robot = move_limit // num_robots
@@ -134,13 +136,13 @@ class AutoPlay:
                         remaining_moves -= 1
                         available_moves = True
                     else:
-                        logging.error(f"No target cell found for package {robot.package.number}")
+                        logging.debug(f"No target cell found for package {robot.package.number}")
                         break
                 else:
                     packages = [cell.package for row in self.board.cells for cell in row if
                                 cell.package and not cell.package.picked_up]
                     if not packages:
-                        logging.info(f"No packages available for robot {robot.index}.")
+                        logging.debug(f"No packages available for robot {robot.index}.")
                         break
 
                     closest_package = min(packages, key=lambda pkg: abs(robot.pos[0] - pkg.pos[0]) + abs(
@@ -156,7 +158,7 @@ class AutoPlay:
                         break
 
             if remaining_moves == 0:
-                logging.info(f"Robot {robot.index} used all its moves for this turn.")
+                logging.debug(f"Robot {robot.index} used all its moves for this turn.")
 
         if not available_moves:
             logging.info("No available moves, skipping turn.")
@@ -164,6 +166,7 @@ class AutoPlay:
         return available_moves
 
     def find_path(self, robot, target_pos):
+        """Finds optimal path"""
         queue = deque()
         visited = set()
         parent = {}

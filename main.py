@@ -13,11 +13,11 @@ from game.PlayerSimulator import PlayerSimulator
 from game.consts import DEFAULT_IMAGE_SIZE
 from game.AutoPlay import AutoPlay
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(asctime)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
 file_handler = logging.FileHandler('game.log')
 file_handler.setLevel(logging.INFO)
-file_handler.setFormatter(logging.Formatter('%(asctime)s - %(asctime)s - %(message)s'))
+file_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
 
 logging.getLogger().addHandler(file_handler)
 
@@ -43,6 +43,9 @@ class GameManager:
         self.current_player: int = 0
         self.game_reset: bool = False
         self.played_games: int = 0
+        self.turn_counter: int = 0  # Отслеживает текущий ход игры
+        self.winner_index: int = None  # Индекс победителя
+        self.turns_taken: int = 0
         self.init_game()
 
     def init_game(self):
@@ -59,11 +62,15 @@ class GameManager:
         self.placing_phase = self.simulator.placing_phase
         self.current_player = 0
         self.game_reset = False
+        self.turn_counter = 0  # Сбрасываем текущий счётчик ходов при инициализации игры
+        self.winner_index = None  # Сбрасываем индекс победителя
+        self.turns_taken = 0
 
     def reset_game(self):
-        """Сброс: Перезапуск игры"""
-        logging.info("Resetting the game.")
+        """Сброс: Перезапуск игры/Game is being reset"""
         self.played_games += 1
+        if self.winner_index is not None:
+            logging.info(f"Game Over: Player {self.winner_index + 1} won after {self.turns_taken} turns.")
         if self.played_games >= self.config.run_count:
             logging.info("Game limit reached. Exiting.")
             sys.exit()
@@ -73,7 +80,7 @@ class GameManager:
         self.run()
 
     def handle_events(self):
-        """Обработка ввода игрока"""
+        """Обработка ввода игрока/ Handling in put from player"""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
@@ -93,7 +100,8 @@ class GameManager:
                     self.simulator.pressed_key(event)
 
     def run_game_mode_1(self):
-        """Режим игры 1: Запуск первого режима игры, тут могут быть роботы-автоботы"""
+        """Режим игры 1: Запуск первого режима игры, тут могут быть роботы-автоботы/Runs game mode 1, where Autoplay
+        Players can be"""
         self.running = True
         self.placing_phase = True
         logging.info("run_game_mode_1 started")
@@ -146,7 +154,8 @@ class GameManager:
         pygame.quit()
 
     def run_game_mode_2(self):
-        """Режим игры 2: ввод из commands txt, примеры комманд там же, здесь только ручной ввод"""
+        """Режим игры 2: ввод из commands txt, примеры комманд там же, здесь только ручной ввод/Commands.txt input,
+        gamemode2"""
 
         def is_valid_command(command):
             gamer_command = r"^GAMER \d+$"
@@ -196,6 +205,7 @@ class GameManager:
         pygame.quit()
 
     @staticmethod
+    # Here is everything for game_mode_2 and the run function
     def load_commands(filepath):
         with open(filepath, 'r') as file:
             commands = file.readlines()

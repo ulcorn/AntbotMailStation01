@@ -43,9 +43,9 @@ class Player:
     def increase_score(self, points, game_manager):
         """Отображение роботов: Рисует роботов на экране"""
         self.score += points
-        logging.info(f"Player's {self.idx + 1} score is now {self.score}.")
+        logging.info(f"[Turn {game_manager.turn_counter}] Player {self.idx + 1}'s score is now {self.score}.")
         if self.score >= game_manager.config.win_score:
-            logging.info(f"Player {self.idx + 1} reached the winning score. Resetting the game.")
+            logging.info(f"[Turn {game_manager.turn_counter}] Player {self.idx + 1} reached the winning score. Resetting the game.")
             game_manager.reset_game()
 
     def draw_score(self, screen, position):

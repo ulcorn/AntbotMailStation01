@@ -8,7 +8,7 @@ from game.consts import DEFAULT_IMAGE_SIZE
 class Package:
     def __init__(self, pos):
         self.pos = pos
-        self.number = random.randint(1, 9)  # Generate a random number
+        self.number = random.randint(1, 9)
         self.picked_up = False
         self.visible = True
         self.image = pygame.transform.scale(

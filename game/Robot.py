@@ -27,7 +27,7 @@ class Robot:
         self.player = player
 
     def move(self, direction, board, animation_steps=10):
-        """Движение роботов"""
+        """Движение роботов/ Move robot"""
         x, y = self.pos
         new_x, new_y = x, y
         if direction == "up" and y > 0:
@@ -52,13 +52,16 @@ class Robot:
                         f"Robot {self.index} of Player {self.player.idx + 1} tried to move to a target cell with "
                         f"incompatible package at ({chr(ord('A') + new_x)}, {new_y + 1}). Move cancelled.")
                     return False
+                self.player.game_manager.turn_counter += 1
+                logging.info(
+                    f"[Turn {self.player.game_manager.turn_counter}] Player {self.player.idx + 1} moved robot {self.index} {direction} to ({chr(ord('A') + new_x)}, {new_y + 1}).")
                 old_rect = self.rect.copy()
                 self.animate_move(old_rect, new_x, new_y, animation_steps, board)
                 board.update_position(self.pos, (new_x, new_y))
                 self.pos = (new_x, new_y)
                 self.rect.topleft = ((new_x + 1) * DEFAULT_IMAGE_SIZE[0], (new_y + 1) * DEFAULT_IMAGE_SIZE[1])
-                logging.info(
-                    f"Player {self.player.idx + 1} moved robot {self.index} {direction} to ({chr(ord('A') + new_x)}, {new_y + 1}).")
+
+                # Execute additional actions after movement
                 if target_cell.target and self.package and target_cell.target == self.package.number:
                     self.drop_package(target_cell)
                 if not self.has_package:
@@ -72,7 +75,8 @@ class Robot:
         return False
 
     def animate_move(self, old_rect, new_x, new_y, steps, board):
-        """Анимация движения: Анимация движения робота, чтобы робот двигался плавно"""
+        """Анимация движения: Анимация движения робота, чтобы робот двигался плавно/ Function so that the robot moves
+        smoothly"""
         step_x = ((new_x + 1) * DEFAULT_IMAGE_SIZE[0] - old_rect.x) / steps
         step_y = ((new_y + 1) * DEFAULT_IMAGE_SIZE[1] - old_rect.y) / steps
         for i in range(steps):
@@ -83,7 +87,7 @@ class Robot:
             pygame.time.delay(5)
 
     def pick_package(self, package, board):
-        """Робот поднял посылку с зеленой клетки"""
+        """Робот поднял посылку с зеленой клетки/ Robot picks the package up"""
         self.has_package = True
         self.package = package
         package.pick_up()
@@ -94,7 +98,7 @@ class Robot:
         board[package.pos[1]][package.pos[0]].package = new_package
 
     def drop_package(self, cell):
-        """Робот сдал посылку с соответствующим номером в пункт приема отмеченной цифрой"""
+        """Робот сдал посылку с соответствующим номером в пункт приема отмеченной цифрой/ Drops package"""
         if not self.has_package:
             return False
         logging.info(
