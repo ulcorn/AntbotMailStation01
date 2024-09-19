@@ -52,7 +52,8 @@ class AutoPlay:
                     if not self.board.is_occupied(cell.x, cell.y):
                         return cell
                     else:
-                        logging.info(f"Target cell for package {package.number} is occupied. Searching for nearest free cell.")
+                        logging.info(
+                            f"Target cell for package {package.number} is occupied. Searching for nearest free cell.")
                         return self.find_nearest_free_cell(cell.x, cell.y)
 
     def find_nearest_free_cell(self, start_x, start_y):
@@ -148,6 +149,10 @@ class AutoPlay:
                     closest_package = min(packages, key=lambda pkg: abs(robot.pos[0] - pkg.pos[0]) + abs(
                         robot.pos[1] - pkg.pos[1]))
                     target_pos = (closest_package.pos[0], closest_package.pos[1] - 1)
+                    if self.board.is_occupied(target_pos[0], target_pos[1]):
+                        logging.info(f"No path found for robot at {robot.pos} to green cell {target_pos}")
+                        target_pos = self.find_nearest_free_cell(robot.pos[0], robot.pos[1])
+                        target_pos = (target_pos.x, target_pos.y)
                     new_pos = self.move_robot_towards(robot, target_pos)
 
                     if new_pos:

@@ -91,8 +91,10 @@ class Robot:
         self.has_package = True
         self.package = package
         package.pick_up()
+        self.player.game_manager.turn_counter += 1
         logging.info(
-            f"Robot {self.index} of Player {self.player.idx + 1} picked up package with number {package.number} at position ({chr(ord('A') + (self.pos[0]))}, {self.pos[1] + 1}).")
+            f"[Turn {self.player.game_manager.turn_counter}] Robot {self.index} of Player {self.player.idx + 1}"
+            f" picked up package with number {package.number} at position ({chr(ord('A') + (self.pos[0]))}, {self.pos[1] + 1}).")
         new_package = Package(package.pos)
         new_package.number = random.randint(1, 9)
         board[package.pos[1]][package.pos[0]].package = new_package
