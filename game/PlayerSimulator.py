@@ -19,7 +19,7 @@ class PlayerSimulator:
     def __init__(self, players, board, game_manager):
         self.players = players
         self.board = board
-        self.game_manager = game_manager  # Добавим ссылку на GameManager
+        self.game_manager = game_manager
         self.current_robot_index = 0
         self.current_robot_counts = [0] * len(players)
         self.total_robots_to_place = len(players) * players[0].num_robots

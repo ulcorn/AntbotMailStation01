@@ -9,7 +9,7 @@ class Board:
         self.cells: list[list[Cell]] = None
         self.load_from_file(colors, targets)
         self.size = len(self.cells[0])
-        self.current_player_index = 0
+        # self.current_player_index = 0
 
         self.yellow_cells = self.get_cells_by_color('y')
         self.red_cells = self.get_cells_by_color('r')
